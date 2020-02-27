@@ -2141,16 +2141,32 @@ _libssh2_wincng_bignum_free(_libssh2_bn *bn)
  * because the stdcall convention is important for the linker to
  * be able to resolve the function in 32-bit MSVC compiler
  * environments. */
-extern NTSTATUS __stdcall RtlGetVersion(OSVERSIONINFOW*);
+//extern NTSTATUS __stdcall RtlGetVersion(OSVERSIONINFOW*);
+double getSysOpType()
+{
+    int ret = 0.0;
+    NTSTATUS(WINAPI * RtlGetVersion)(LPOSVERSIONINFOEXW);
+    OSVERSIONINFOEXW osInfo;
+
+    *(FARPROC*)&RtlGetVersion = GetProcAddress(GetModuleHandleA("ntdll"), "RtlGetVersion");
+
+    if (NULL != RtlGetVersion)
+    {
+        osInfo.dwOSVersionInfoSize = sizeof(osInfo);
+        RtlGetVersion(&osInfo);
+        ret = osInfo.dwMajorVersion;
+    }
+    return ret;
+}
 
 static int is_windows_10_or_later(void)
 {
-    OSVERSIONINFOW vers;
+    /*OSVERSIONINFOW vers;
     vers.dwOSVersionInfoSize = sizeof(vers);
     if(RtlGetVersion(&vers) != 0) {
         return 0;
-    }
-    return vers.dwMajorVersion >= 10;
+    }*/
+    return getSysOpType() >= 10;
 }
 #endif
 
